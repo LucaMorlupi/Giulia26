@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Giulia's Birthday♥ – Mobile</title>
+<style>
+  :root{
+    --bg:#0b1020; --fg:#e6f0ff; --muted:#9bb0cc;
+    --lane:#0c1530; --goal:#94f2c4; --hud:#0b1328cc; --accent:#f472b6;
+    --plus:#7dd3fc; --minus:#fca5a5; --player:#f1f5f9 ;--lane-line: rgba(150,170,220,.18);
+
+  }
+/* Tema per difficoltà (override delle CSS vars) */
+body[data-theme="easy"]{
+  /* Rosa Neon (easy/effemminata) */
+  --bg:#ffb6da; --lane:#ff66b2; --goal:#ffccf2; --accent:#ff1493;
+  --plus:#ffffff; --minus:#ff4d6d; --player:#ffe6f7;--lane-line: rgba(255,255,255,.22);
+}
+body[data-theme="medium"]{
+  /* Blu Notte + Neon (equilibrata) */
+  --bg:#0b1020; --lane:#1c2a4d; --goal:#4dd0e1; --accent:#82b1ff;
+  --plus:#29b6f6; --minus:#ef5350; --player:#e3f2fd; --lane-line: rgba(120,200,255,.18);
+}
+body[data-theme="hard"]{
+  --bg:#1a0000;       /* rosso scurissimo */
+  --lane:#330000;     /* corsia rosso cupo */
+  --goal:#ff4444;     /* obiettivo rosso sangue */
+  --accent:#ff0000;   /* dettagli in rosso vivo */
+  --plus:#ffcc00;     /* giallo per i bonus */
+  --minus:#990000;    /* rosso scuro per i malus */
+  --player:#ffffff;   /* giocatore bianco */
+  --lane-line: rgba(255,50,50,.25);
+}
+
+
+
+
+  html,body{height:100%; margin:0; background:radial-gradient(1000px 700px at 20% 10%,#122043 0,#0b1020 40%),
+                                      radial-gradient(800px 500px at 80% 0%,#0a4a78 0,#0b1020 50%);
+             color:var(--fg); font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Inter,Arial;}
+  .wrap{display:grid; place-items:center; height:100%; padding:10px}
+  .card{width:min(900px,100%); background:#0b1328cc; border:1px solid #1b2a55; border-radius:18px; box-shadow:0 20px 40px rgba(0,0,0,.35); overflow:hidden}
+  header{display:flex; justify-content:space-between; align-items:center; padding:12px 14px; border-bottom:1px solid #1b2a55}
+  header h1{font-size:16px; margin:0; font-weight:700}
+  header .muted{color:var(--muted); font-size:12px}
+  .main{display:grid; grid-template-columns:1fr 280px; gap:10px; padding:10px}
+  .panel{background:#0b1328; border:1px solid #1b2a55; border-radius:14px; padding:10px}
+  .play{position:relative}
+  canvas{width:100%; height:72vh; max-height:78vh;  background: linear-gradient(var(--bg), #000000); touch-action:manipulation}
+  .row{display:flex; gap:8px; align-items:center}
+  .stat{display:grid; grid-template-columns:auto 1fr auto; gap:6px; align-items:center; font-size:13px}
+  .bar{height:8px; border-radius:999px; background:#0e1a33; overflow:hidden}
+  .bar>div{height:100%; width:0; background:linear-gradient(90deg,#f472b6,#22d3ee)}
+  button{cursor:pointer; background:linear-gradient(135deg,#f472b6,#22d3ee); color:#061225; border:none; padding:10px 14px; border-radius:12px; font-weight:800}
+  button.ghost{background:transparent; color:var(--fg); border:1px solid #2a3c70}
+
+
+/* rosso bordeaux #b31217, #e52d27,,,,,,,, blu oceano  #2193b0, #6dd5ed */
+button.ghost.selected {
+  background: linear-gradient(135deg,  #002d1d, #006644, #00cc88);
+  color: #fff;
+  border-color: #fff;
+}
+
+  /* 🚀 Bottone Start */
+  #startBtn {
+    background: linear-gradient(135deg, #003300, #00b894); /* verde tenebra → smeraldo */
+    color: #fff;
+    border: none;
+    font-weight: 900;
+    box-shadow: 0 0 6px rgba(0, 200, 120, 0.6);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  #startBtn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 18px rgba(0, 255, 150, 0.8);
+  }
+
+  .center{text-align:center}
+  .hint{color:var(--muted); font-size:12px}
+  .overlay{position:absolute; inset:0; display:grid; place-items:center; background:linear-gradient(#0b1020cc,#0b1020cc);}
+  .overlay .box{background:#0b1328; border:1px solid #1b2a55; border-radius:16px; padding:18px; width:min(540px,92%); text-align:center}
+  .title{font-size:22px; margin:0 0 6px}
+  .grid{display:grid; gap:8px}
+  .hud{position:absolute; inset:auto 8px 8px 8px; background:var(--hud); border:1px solid #1b2a55; border-radius:12px; padding:6px 10px; display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap}
+  .pill{display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border:1px solid #26407a; border-radius:999px; font-size:12px; background:#0f1b3a}
+  .heart{display:inline-block; animation:pulse 1.2s infinite}
+  @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.1)}100%{transform:scale(1)}}
+
+  /* Mobile: nascondi pannello di destra */
+  @media (max-width: 760px){
+    .main{grid-template-columns:1fr;}
+    canvas{height:78vh}
+    .panel.controls{display:none}
+  }
+
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <header>
+      <h1>Pipo survivor<span class="muted">— alla ricerca della Patata Perduta</span></h1>
+      <!--<div class="muted">Evita i cattivi per restare in vita</div> -->
+    </header>
+    <div class="main">
+      <div class="panel play">
+        <!-- ASSET PACK nascosto: JPG personalizzati -->
+        <div id="assets" style="display:none">
+          <!-- PLAYER -->
+          <img id="playerSprite" alt="player" src="giulia_omino.jpg"/>
+
+          <!-- PLUS (4) -->
+          <img class="plus" id="plus1" alt="plus1" src="plus1.jpg"/>
+          <img class="plus" id="plus2" alt="plus2" src="plus2.jpg"/>
+          <img class="plus" id="plus3" alt="plus3" src="plus3.jpg"/>
+          <img class="plus" id="plus4" alt="plus4" src="plus4.jpg"/>
+
+          <!-- MALUS (4) -->
+          <img class="malus" id="malus1" alt="malus1" src="malus1.jpg" data-msg="Il nuovo Captain America ti ha messo lo scudo rubato sulla gola, you cannot breath. Black Lives Matter. 🪦"/>
+          <img class="malus" id="malus2" alt="malus2" src="malus2.jpg" data-msg="Black Panther ti ha fermato con le sue armi tecnologiche, serviva un fumetto per fare un negr* tecnologico. 🦍"/>
+          <img class="malus" id="malus3" alt="malus3" src="malus3.jpg" data-msg="Bully Maguire ti ha bullizzato, ritorna al punto di partenza perdente. 🕷️"/>
+	  <img class="malus" id="malus4" alt="malus4" src="malus4.jpg" data-msg="Martin Luther King ti ha rubato un sogno, ricomincia a sognare, da capo però. ☠️"/>
+
+        </div>
+
+        <canvas id="game"></canvas>
+        <div class="hud">
+          <span class="pill">Diff: <b id="diffLabel">Scegli attentamente</b></span>
+          <span>⏱️ <b id="time">30-45-60</b>s</span>
+          <span>⭐ <b id="score">0</b></span>
+          <span>🏆 <b id="best">0</b></span>
+        </div>
+        <div id="startOverlay" class="overlay">
+          <div class="box">
+            <h2 class="title">Scegli difficoltà & Start 🐍</h2>
+            <p class="hint">Muoviti lungo le 3 corsie. Raccogli i <b>BUONI</b> per aumentare i tuoi punti, se prendi i <b>CATTIVI</b> perdi. Resisti fino allo scadere del tempo per vincere e sbloccare il finale bonus  <br> (<span class="heart">❤</span>).</p>
+            <div class="row center" style="justify-content:center; margin:10px 0 14px; flex-wrap:wrap; gap:10px">
+              <button class="ghost" data-diff="easy" style="font-size:14px; padding:8px 10px;" >Gay mode 🌈</button>
+              <button class="ghost" data-diff="medium" style="font-size:14px; padding:8px 10px;">Base 🐣</button>
+              <button class="ghost" data-diff="hard" style="font-size:14px; padding:8px 10px;" >Apocalipse🔥</button>
+              <button id="startBtn" style="font-size:18px; padding:8px 20px;" >Start</button>
+            </div>
+            <p id="assetNote" class="hint"></p>
+          </div>
+        </div>
+        <div id="endOverlay" class="overlay" style="display:none">
+          <div class="box">
+            <h2 id="endTitle" class="title"></h2>
+            <p id="endMsg" class="hint"></p>
+            <div class="row center" style="justify-content:center; margin-top:10px">
+              <button id="retryBtn">Riprova</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel controls">
+        <div class="stat"><span>Tempo</span><div class="bar"><div id="timeBar"></div></div><b id="timeDup">45.0</b></div>
+        <div class="row" style="margin-top:10px; justify-content:space-between">
+          <button id="muteBtn" class="ghost">Audio: OFF</button>
+          <button id="resetBest" class="ghost">Reset Best</button>
+        </div>
+        <div class="hint" style="margin-top:10px">Easter egg da desktop: ti amissssssssssssimo</div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+// helper per leggere variabili CSS dal tema attivo sul <body>
+function cssVar(name, fallback){
+  const v = getComputedStyle(document.body).getPropertyValue(name);
+  return (v && v.trim()) || fallback;
+}
+
+(function(){
+
+
+  // ---- DPR-aware canvas sizing ----
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  function fitCanvas(){
+    const dpr = Math.max(1, window.devicePixelRatio||1);
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = Math.round(rect.width*dpr);
+    canvas.height = Math.round(rect.height*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  fitCanvas(); window.addEventListener('resize', fitCanvas);
+
+  const ui = {
+    t: document.getElementById('time'),
+    t2: document.getElementById('timeDup'),
+    tb: document.getElementById('timeBar'),
+    s: document.getElementById('score'),
+    b: document.getElementById('best'),
+    startOv: document.getElementById('startOverlay'),
+    endOv: document.getElementById('endOverlay'),
+    endTitle: document.getElementById('endTitle'),
+    endMsg: document.getElementById('endMsg'),
+    startBtn: document.getElementById('startBtn'),
+    retryBtn: document.getElementById('retryBtn'),
+    muteBtn: document.getElementById('muteBtn'),
+    resetBest: document.getElementById('resetBest'),
+    assetNote: document.getElementById('assetNote'),
+    diffLabel: document.getElementById('diffLabel'),
+  };
+
+  // ---- Assets from hidden pack (player, plus/malus) ----
+  const PLUS_IMGS = Array.from(document.querySelectorAll('#assets img.plus'));
+  const MALUS_IMGS = Array.from(document.querySelectorAll('#assets img.malus'));
+
+  let best = +localStorage.getItem('sr_best')||0; ui.b.textContent = best;
+// Audio UI (i suoni li gestisce suoni.js)
+let audioOn = true;
+ui.muteBtn.textContent = 'Audio: ON';
+ui.muteBtn.onclick = () => {
+  audioOn = !audioOn;
+  ui.muteBtn.textContent = 'Audio: ' + (audioOn ? 'ON' : 'OFF');
+  // avvisa l’addon esterno
+  window.dispatchEvent(new CustomEvent('sr:audio', { detail:{ enabled: audioOn } }));
+};
+
+
+
+  // ---- Difficulties ----
+  const DIFF = {
+    easy:   { label:'Sopra',  time:30, speed:220, acc:3.5,  spawn:{ plus:0.65, line:0.20, malus:0.15, gap:[210,80] } },
+    medium: { label:'Cucchiaio',   time:45, speed:260, acc:6,  spawn:{ plus:0.50, line:0.20, malus:0.30, gap:[190,70] } },
+    hard:   { label:'Gambe su',time:60, speed:320, acc:10,spawn:{ plus:0.45, line:0.15, malus:0.40, gap:[170,60] } },
+  };
+
+
+
+
+  const G = {
+    diff:'medium',
+    t: 45.0,
+    lane: 0, // -1,0,1
+    speed: 260, // px/sec
+    acc: 4,
+    u: 8, // unità per disegno player se serve
+    score: 0,
+    phase: 'idle', // 'idle'|'run'|'cut'|'end'
+    goalAnim: 0, // 0..1 chiusura durante cutscene
+    W: 0, H: 0,
+    playerY: 0,
+    cutT: 0, // tempo cutscene 0..8s
+    fireworks: [],
+ 	   ROAD_SCALE: 0.90,
+  };
+
+  function size(){ const r=canvas.getBoundingClientRect(); G.W=r.width; G.H=r.height; }
+  size(); window.addEventListener('resize', size);
+
+const lanes = [-1,0,1];
+
+// Geometria della strada (centrata) in base a ROAD_SCALE
+function roadGeom(){
+  const ROAD_W   = Math.round(G.W * G.ROAD_SCALE);      // larghezza totale strada
+  const roadLeft = Math.round((G.W - ROAD_W) / 2);      // bordo sinistro
+  const laneW    = ROAD_W / 3;                          // 3 corsie
+  return { ROAD_W, roadLeft, laneW };
+}
+
+// Centro corsia per lane -1,0,1
+function laneX(lane){
+  const { roadLeft, laneW } = roadGeom();
+  const idx = lane + 1; // -1→0, 0→1, 1→2
+  return Math.round(roadLeft + (idx + 0.5) * laneW);
+}
+
+  const hy = ()=> Math.max(G.H - 120, 140); // posizione di gioco
+  const GOAL_Y = 140; // parentesi fisse in alto
+
+  // Input (keyboard + swipe) SOLO in fase 'run'
+  function moveLeft(){ if(G.phase==='run' && G.lane>-1) G.lane--; }
+  function moveRight(){ if(G.phase==='run' && G.lane<1) G.lane++; }
+  window.addEventListener('keydown', (e)=>{ if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A') moveLeft(); else if(e.key==='ArrowRight'||e.key==='d'||e.key==='D') moveRight(); });
+  let touchX=null, touchY=null, handled=false;
+  canvas.addEventListener('touchstart',(e)=>{const t=e.changedTouches[0]; touchX=t.clientX; touchY=t.clientY; handled=false;}, {passive:true});
+  canvas.addEventListener('touchmove',(e)=>{const t=e.changedTouches[0]; if(handled||G.phase!=='run') return; const dx=t.clientX-touchX, dy=t.clientY-touchY; if(Math.abs(dx)>28 && Math.abs(dx)>Math.abs(dy)){ if(dx<0) moveLeft(); else moveRight(); handled=true; }},{passive:true});
+
+  // Preload helper (non blocca in caso di errore)
+  function ensureLoaded(img){
+    return new Promise((resolve)=>{
+      if(!img){ resolve({ok:false, img}); return; }
+      const done=(ok)=>resolve({ok, img});
+      if(img.complete && img.naturalWidth>0){ done(true); return; }
+      img.onload=()=>done(true);
+      img.onerror=()=>done(false);
+    });
+  }
+
+  async function preloadAssets(){
+    const player = document.getElementById('playerSprite');
+    const tasks=[ ensureLoaded(player), ...PLUS_IMGS.map(ensureLoaded), ...MALUS_IMGS.map(ensureLoaded) ];
+    const results = await Promise.all(tasks);
+    const playerOk = results[0]?.ok;
+    if(!playerOk){ ui.assetNote.textContent='Nota: player JPG non caricato, uso un pallino come giocatore.'; }
+  }
+
+  // Entities che scendono (solo plus/malus, NIENTE goal qui)
+  const objs=[]; // {type:'plus'|'malus', lane:int, y:number, sprite?:number}
+  let spawnTimer=0;
+
+
+
+function setDifficulty(key) {
+  const d = DIFF[key || 'medium'] || DIFF.medium;
+
+  // parametri di gioco + UI
+  G.diff = key;
+  G.t = d.time;
+  G.speed = d.speed;
+  G.acc = d.acc;
+  ui.t.textContent = ui.t2.textContent = G.t.toFixed(1);
+  ui.diffLabel.textContent = d.label;
+  ui.tb.style.width = '0%';
+
+  // attiva il tema base (serve per easy/medium)
+  document.body.setAttribute('data-theme', key || 'medium');
+
+ }
+
+
+  function spawnPattern(){
+    const d = DIFF[G.diff];
+    const base = d.spawn.gap[0], varr = d.spawn.gap[1];
+    const gap = base + Math.random()*varr;
+    if(G.t>2){ // continua a giocare fino a 2s dalla fine
+      const r=Math.random();
+      if(r < d.spawn.plus){ // plus + malus separati
+        const l = lanes[Math.floor(Math.random()*3)];
+        objs.push({type:'plus', lane:l, y:-60, sprite:Math.floor(Math.random()*PLUS_IMGS.length)});
+        const other = [ -1,0,1 ].filter(x=>x!==l);
+        objs.push({type:'malus', lane: other[Math.floor(Math.random()*other.length)], y:-60-gap*0.4, sprite:Math.floor(Math.random()*MALUS_IMGS.length)});
+      } else if(r < d.spawn.plus + d.spawn.line){ // linea di plus
+        const l=lanes[Math.floor(Math.random()*3)];
+        objs.push({type:'plus', lane:l, y:-60, sprite:Math.floor(Math.random()*PLUS_IMGS.length)});
+        objs.push({type:'plus', lane:l, y:-60-gap*0.6, sprite:Math.floor(Math.random()*PLUS_IMGS.length)});
+      } else { // singolo malus
+        const l=lanes[Math.floor(Math.random()*3)];
+        objs.push({type:'malus', lane:l, y:-60, sprite:Math.floor(Math.random()*MALUS_IMGS.length)});
+      }
+    }
+    spawnTimer = gap + 80; // px-to-time handled in loop
+  }
+
+  function reset(){
+    setDifficulty(G.diff||'medium');
+    G.lane=0; G.score=0; G.phase='run'; G.goalAnim=0; objs.length=0; spawnTimer=0; ui.s.textContent='0';
+    G.playerY = hy();
+    G.cutT = 0; G.fireworks.length=0;
+  }
+
+  // Helpers disegno
+  function drawRect(x,y,w,h,fill){ ctx.fillStyle=fill; ctx.fillRect(x|0,y|0,w|0,h|0); }
+  function drawCircle(x,y,r,fill){ ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fillStyle=fill; ctx.fill(); }
+
+  function drawHead(x,y){
+    // Player: se esiste JPG usa quello, altrimenti un pallino
+    const spr = document.getElementById('playerSprite');
+    if(spr && spr.complete && spr.naturalWidth>0){
+      const w = 64, h = 48; // dimensione consigliata per JPG player
+      ctx.drawImage(spr, x - w/2, y - h/2, w, h);
+    } else {
+      drawCircle(x, y, 14, 'var(--player)');
+      ctx.strokeStyle='#94a3b8'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(x,y,14,0,Math.PI*2); ctx.stroke();
+    }
+  }
+
+ function drawGoalFixed(){
+  // sfondo resta blu: non tocchiamo il background del canvas qui
+  const cx = G.W/2, y = GOAL_Y;
+
+  // parentesi che si chiudono leggermente durante la cutscene
+  const rad = 120;
+  const baseGap = 180;
+  const gap = baseGap * (0.6 + 0.4*(1 - G.goalAnim)); // 1-> aperte, 0-> chiuse
+
+  ctx.save();
+  ctx.strokeStyle = 'var(--goal)';
+  ctx.lineWidth = 6;
+
+  // SINISTRA "("
+  ctx.beginPath();
+  ctx.arc(cx - gap/2, y, rad, -Math.PI/2, Math.PI/2);
+  ctx.stroke();
+
+  // DESTRA ")"
+  ctx.beginPath();
+  ctx.arc(cx + gap/2, y, rad,  Math.PI/2, -Math.PI/2);
+  ctx.stroke();
+
+  // cuoricino al centro
+  ctx.fillStyle = 'var(--goal)';
+  ctx.font = '28px system-ui';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('❤', cx, y+6);
+  ctx.restore();
+}
+
+// Effetto fuochi: particelle additive, niente tinta sullo sfondo
+
+function spawnBurst(x, y){
+  const N = 42 + Math.floor(Math.random()*24);   // più particelle
+  for(let i=0;i<N;i++){
+    const a  = Math.random()*Math.PI*2;
+    const sp = 140 + Math.random()*180;          // più veloce
+    const r0 = 2 + Math.random()*3;
+    const life = 0.9 + Math.random()*0.9;        // vita un filo più lunga
+    const huePick = Math.random();
+    const color = huePick < 0.33 ? '#ffd166' : (huePick < 0.66 ? '#ff80bf' : '#7de3ff'); // giallo/rosa/ciano
+    G.fireworks.push({ x, y, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp, r0, color, life, t:0 });
+  }
+}
+
+
+function drawFireworks(dt){
+  if(!G.fireworks.length) return;
+
+  ctx.save();
+  const prevComp = ctx.globalCompositeOperation;
+  ctx.globalCompositeOperation = 'lighter'; // additivo = brillante su sfondo blu
+
+  for(let i=G.fireworks.length-1; i>=0; i--){
+    const p = G.fireworks[i];
+    p.t += dt;
+    const k = p.t / p.life;
+    if(k >= 1){ G.fireworks.splice(i,1); continue; }
+
+    // easing radiale
+    const ease = 1 - Math.pow(1-k, 2);
+    const x = p.x + p.vx*ease;
+    const y = p.y + p.vy*ease + 20*p.t;
+    const alpha = 1 - k;
+
+    ctx.globalAlpha = alpha;
+
+    // due bagliori (giallo + bianco) per staccare bene sul blu
+    drawCircle(x, y, 3 + 2*(1-alpha), '#ffd166'); // giallo caldo
+    drawCircle(x, y, 2, '#ffffff');               // highlight bianco
+  }
+
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = prevComp;
+  ctx.restore();
+}
+
+function draw(){
+  // corsie: tre bande + linee divisorie
+  const laneCol = cssVar('--lane', '#0c1530');
+  const lineCol = cssVar('--lane-line', 'rgba(150,170,220,.18)');
+
+  // Strada centrata e più larga in base a G.ROAD_SCALE
+const { ROAD_W, roadLeft, laneW } = roadGeom();
+
+// rettangolo strada
+drawRect(roadLeft, 0, ROAD_W, G.H, laneCol);
+
+// mezzerie tra corsie (posizioni precise)
+const divXs = [ roadLeft + laneW, roadLeft + 2*laneW ];
+
+// tratteggi verticali
+ctx.strokeStyle = lineCol;
+ctx.lineWidth = 2;
+ctx.setLineDash([10,14]);
+for (const x of divXs){
+  ctx.beginPath();
+  ctx.moveTo(Math.round(x)+0.5, 0); // snap per nitidezza
+  ctx.lineTo(Math.round(x)+0.5, G.H);
+  ctx.stroke();
+}
+ctx.setLineDash([]);
+
+
+  // leggero scurimento solo durante CUT
+  if (G.phase==='cut') {
+    ctx.save();
+    ctx.fillStyle = 'rgba(0,0,0,0.18)';
+    ctx.fillRect(0,0,G.W,G.H);
+    ctx.restore();
+  }
+
+  // entities (solo in RUN)
+  if(G.phase==='run'){
+    for(const o of objs){
+      const x = laneX(o.lane);
+      if(o.type==='plus'){
+        const im = PLUS_IMGS[o.sprite||0];
+        if(im && im.complete && im.naturalWidth>0){ ctx.drawImage(im, x-22, o.y-22, 44, 44); }
+        else { drawCircle(x, o.y, 20, cssVar('--plus', '#7dd3fc')); ctx.fillStyle='#083a5a'; ctx.font='bold 24px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('+', x, o.y+1); }
+      } else if(o.type==='malus'){
+        const im = MALUS_IMGS[o.sprite||0];
+        if(im && im.complete && im.naturalWidth>0){ ctx.drawImage(im, x-22, o.y-22, 44, 44); }
+        else { drawCircle(x, o.y, 20, cssVar('--minus', '#fca5a5')); ctx.fillStyle='#5b0f0f'; ctx.font='bold 28px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('−', x, o.y+1); }
+      }
+    }
+  }
+
+  // CUTSCENE: parentesi fisse in alto
+  if(G.phase==='cut' || G.phase==='end'){
+    // usa colore tema per il goal
+    const _oldStroke = ctx.strokeStyle, _oldFill = ctx.fillStyle;
+    const goalCol = cssVar('--goal', '#94f2c4');
+    ctx.strokeStyle = goalCol;
+
+    const cx = G.W/2, y = GOAL_Y;
+    const rad = 120, baseGap = 180;
+    const gap = baseGap * (0.6 + 0.4*(1 - G.goalAnim));
+    ctx.beginPath(); ctx.arc(cx - gap/2, y, rad, -Math.PI/2, Math.PI/2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx + gap/2, y, rad,  Math.PI/2, -Math.PI/2); ctx.stroke();
+
+    ctx.fillStyle = goalCol;
+    ctx.font='28px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('❤', cx, y+6);
+
+    ctx.strokeStyle=_oldStroke; ctx.fillStyle=_oldFill;
+  }
+
+  // player
+  const hx = laneX(G.lane);
+  const yh = (G.phase==='cut'||G.phase==='end') ? G.playerY : hy();
+  const spr = document.getElementById('playerSprite');
+  if(spr && spr.complete && spr.naturalWidth>0){
+    ctx.drawImage(spr, hx - 32, yh - 24, 64, 48);
+  } else {
+    drawCircle(hx, yh, 14, cssVar('--player', '#f1f5f9'));
+    ctx.strokeStyle='#94a3b8'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(hx,yh,14,0,Math.PI*2); ctx.stroke();
+  }
+}
+
+function update(dt){
+  if (G.phase==='end' || G.phase==='idle') return;
+
+  if (G.phase==='run'){
+    // timer e spawn
+    G.t = Math.max(0, G.t - dt);
+    ui.t.textContent = ui.t2.textContent = G.t.toFixed(1);
+    ui.tb.style.width = ((DIFF[G.diff].time-G.t)/DIFF[G.diff].time*100)+'%';
+    G.speed += G.acc*dt;
+
+    spawnTimer -= G.speed*dt; 
+    if (spawnTimer<=0) spawnPattern();
+
+    for (let i=objs.length-1; i>=0; i--){
+      const o=objs[i];
+      o.y += G.speed*dt;
+      if (o.y>G.H+180) objs.splice(i,1);
+    }
+
+    // --- collisioni ---
+    const yh = hy();
+    for (let i = objs.length - 1; i >= 0; i--) {
+      const o = objs[i];
+      if (Math.abs(o.y - yh) < 34 && o.lane === G.lane) {
+        const xhit = laneX(G.lane), yhit = yh;
+
+        if (o.type === 'plus') {
+          objs.splice(i, 1);
+          window.dispatchEvent(new CustomEvent('sr:pickup', { detail: { x: xhit, y: yhit } }));
+          G.score += 25;
+          ui.s.textContent = Math.floor(G.score);
+        } else if (o.type === 'malus') {
+          window.dispatchEvent(new CustomEvent('sr:hit', { detail: { x: xhit, y: yhit } }));
+
+          // prendi la frase dall'IMG: id = malus{sprite+1}, attributo data-msg
+          const elId = 'malus' + ((o.sprite||0)+1);
+          const el = document.getElementById(elId);
+          const msg = el?.dataset?.msg || "Hai perso!";
+          return gameOver(false, msg);
+        }
+      }
+    }
+
+    // --- fine tempo → avvia cutscene ---
+    if (G.t<=0){
+      G.lane = 0; 
+      G.phase='cut'; 
+      G.cutT=0; 
+      G.goalAnim=0; 
+      G.playerY = hy(); 
+      objs.length=0; // svuota campo
+    }
+  }
+  else if (G.phase==='cut'){
+    // timeline 0..8s
+    G.cutT += dt; 
+    const t = G.cutT;
+
+    if (t<=3){
+      const start=hy(); const target=GOAL_Y+60;
+      const k = t/3; const ease = 1 - Math.pow(1-k,2);
+      G.playerY = start + (target-start)*ease;
+    } else if (t<=4){
+      const k=(t-3)/1; const up=GOAL_Y+60; const back=up+60; 
+      const ease = Math.sin(k*Math.PI); 
+      G.playerY = up + (back-up)*ease;
+    } else if (t<=5.5){
+      const k=(t-4)/1.5;   
+      const from=GOAL_Y+60; const to=GOAL_Y+20;
+      const ease = 1 - Math.pow(1-k,2);
+      G.playerY = from + (to-from)*ease;
+      G.goalAnim = Math.min(1, k);
+    } else if (t<=8){
+      if (Math.abs((t-5.5)%0.6) < dt) spawnBurst(G.W/2, GOAL_Y);
+      G.goalAnim=1;
+      if(!G._goalEventFired){ 
+        window.dispatchEvent(new CustomEvent('sr:goal', { detail:{ x:G.W/2, y:GOAL_Y } }));
+        G._goalEventFired = true;
+      }
+    }
+
+    if(G.cutT>=8){ gameOver(true); }
+  }
+}
+
+
+
+  function finalPhrase(){
+    switch(G.diff){
+      case 'easy':   return 'Ti amo sempre eh, ma questa difficoltà la faceva anche Matteo💕';
+      case 'hard':   return 'Ti amo da impazzire, e se hai fatto più di 1200 punti stavolta ci andiamo a Praga 💖🔥';
+      default:       return 'Ti amo anche se non me la dai mai 😏';
+    }
+  }
+
+
+  function gameOver(win, customMsg){
+  G.phase='end';
+  const sc = Math.floor(G.score + (win? 100:0));
+  if(sc>best){ best=sc; localStorage.setItem('sr_best', String(sc)); }
+  ui.b.textContent = best;
+
+  ui.endTitle.textContent = win ? 'Hai vinto! (❤)' : 'Oops, hai perso malamente!';
+
+  // 👉 se c'è un messaggio personalizzato lo usa, sennò fallback
+  if (win) {
+    ui.endMsg.innerHTML = finalPhrase();
+  } else {
+    ui.endMsg.innerHTML = customMsg || 'Hai toccato un malus. Riprova: resta in corsia libera e punta al centro al traguardo.';
+  }
+
+  ui.endOv.style.display='grid';
+}
+
+
+
+  // loop
+  let last=0, raf=null;
+
+
+ function frame(ts){
+  if(!last) last=ts;
+  const dt = Math.min(0.033,(ts-last)/1000);
+  last = ts;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  update(dt);
+  draw();
+
+  // ⬇️ Disegna i fuochi SOPRA a tutto
+  drawFireworks(dt);
+  raf = requestAnimationFrame(frame);
+}
+
+
+  async function start(){ fitCanvas(); size(); await preloadAssets(); reset(); ui.startOv.style.display='none'; ui.endOv.style.display='none'; cancelAnimationFrame(raf); last=0; raf=requestAnimationFrame(frame); }
+  function retry(){ start(); }
+
+// Diff selectors (nuovo)
+document.querySelectorAll('[data-diff]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const key = btn.getAttribute('data-diff'); // 'easy' | 'medium' | 'hard'
+    setDifficulty(key); // applica palette + label + parametri
+
+    // evidenzia il bottone selezionato
+    document.querySelectorAll('button.ghost[data-diff]').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  });
+});
+
+
+
+// evidenzia il bottone selezionato
+document.querySelectorAll('button.ghost').forEach(btn => {
+  btn.addEventListener('click', () => {
+    // togli la selezione da tutti
+    document.querySelectorAll('button.ghost').forEach(b => b.classList.remove('selected'));
+    // metti la selezione solo su quello cliccato
+    btn.classList.add('selected');
+  });
+});
+
+
+
+ ui.startBtn.onclick = () => {
+  // [ADD] notifica l’addon: questo è un gesto utente sicuro
+  window.dispatchEvent(new CustomEvent('sr:unlock'));
+  // [ADD] sincronizza stato mute con l’addon (ON/OFF)
+  window.dispatchEvent(new CustomEvent('sr:audio', { detail:{ enabled: audioOn } }));
+  start();
+};
+ ui.retryBtn.onclick = retry;
+})();
+</script>
+<script src="suoni.js?v=99"></script>
+
+</body>
+</html>
