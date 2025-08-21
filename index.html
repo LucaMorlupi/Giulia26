@@ -230,7 +230,7 @@ ui.muteBtn.onclick = () => {
   const DIFF = {
     easy:   { label:'Sopra',  time:30, speed:220, acc:3.5,  spawn:{ plus:0.65, line:0.20, malus:0.15, gap:[210,80] } },
     medium: { label:'Cucchiaio',   time:45, speed:260, acc:6,  spawn:{ plus:0.50, line:0.20, malus:0.30, gap:[190,70] } },
-    hard:   { label:'Gambe su',time:60, speed:320, acc:10,spawn:{ plus:0.45, line:0.15, malus:0.40, gap:[170,60] } },
+    hard:   { label:'Gambe su',time:60, speed:320, acc:7.5,spawn:{ plus:0.45, line:0.15, malus:0.40, gap:[170,60] } },
   };
 
 
@@ -625,7 +625,7 @@ function update(dt){
   function finalPhrase(){
     switch(G.diff){
       case 'easy':   return 'Ti amo sempre eh, ma questa difficoltà la faceva anche Matteo💕';
-      case 'hard':   return 'Ti amo da impazzire, e se hai fatto più di 1200 punti stavolta ci andiamo a Praga 💖🔥';
+      case 'hard':   return 'Ti amo da impazzire, e se hai fatto più di 1200 punti stavolta ci andiamo davvero a Praga 💖🔥';
       default:       return 'Ti amo anche se non me la dai mai 😏';
     }
   }
@@ -712,3 +712,4 @@ document.querySelectorAll('button.ghost').forEach(btn => {
 
 </body>
 </html>
+
